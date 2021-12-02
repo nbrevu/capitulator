@@ -22,16 +22,27 @@ import com.nbrevu.capitulator.deserialiseddata.AppConfig;
 import com.nbrevu.capitulator.deserialiseddata.Chapter;
 
 public class StandardBox extends JFrame	{
-	private static final long serialVersionUID = -7891317911426722027L;
+	private final static long serialVersionUID = -7891317911426722027L;
+	
+	private final static char[] INVALID_CHARACTERS=new char[] {'\\','/',':','*','?','\"','<','>','|'};
+	
+	private static String sanitise(String in)	{
+		for (char c:INVALID_CHARACTERS) in=in.replace(c,'_');
+		return in;
+	}
 	
 	private static class ChapterTextFields	{
+		public final JCheckBox isActive;
 		public final JTextField trackArtist;
 		public final JTextField trackTitle;
-		public ChapterTextFields(JTextField trackArtist,JTextField trackTitle)	{
+		public final JTextField fileName;
+		public ChapterTextFields(JCheckBox isActive,JTextField trackArtist,JTextField trackTitle,JTextField fileName)	{
+			this.isActive=isActive;
 			this.trackArtist=trackArtist;
 			this.trackTitle=trackTitle;
+			this.fileName=fileName;
 		}
-		public void reverse()	{
+		public void reverseArtistAndTitle()	{
 			String swap=trackArtist.getText();
 			trackArtist.setText(trackTitle.getText());
 			trackTitle.setText(swap);
@@ -74,7 +85,7 @@ public class StandardBox extends JFrame	{
 		otherFlagsBox.add(deleteEmptyFiles);
 		otherFlagsBox.add(Box.createHorizontalGlue());
 		mainPane.add(otherFlagsBox);
-		// Album tag
+		// Album tag.
 		mainPane.add(Box.createVerticalStrut(5));
 		Box albumBox=Box.createHorizontalBox();
 		albumBox.add(Box.createHorizontalStrut(5));
@@ -93,7 +104,8 @@ public class StandardBox extends JFrame	{
 			Box chapterBox=Box.createVerticalBox();
 			Box labelBox=Box.createHorizontalBox();
 			labelBox.add(Box.createHorizontalStrut(5));
-			labelBox.add(new JLabel(c.title));
+			JCheckBox isActive=new JCheckBox(c.title,true);
+			labelBox.add(isActive);
 			labelBox.add(Box.createHorizontalGlue());
 			chapterBox.add(labelBox);
 			String artistGuess;
@@ -116,12 +128,19 @@ public class StandardBox extends JFrame	{
 			userInputBox.add(new JLabel("Title: "));
 			JTextField trackName=new JTextField(trackNameGuess);
 			userInputBox.add(trackName);
-			chapterComponents.add(new ChapterTextFields(artist,trackName));
 			userInputBox.add(Box.createHorizontalStrut(5));
 			chapterBox.add(userInputBox);
+			Box fileNameBox=Box.createHorizontalBox();
+			fileNameBox.add(Box.createHorizontalStrut(5));
+			fileNameBox.add(new JLabel("File name: "));
+			JTextField fileName=new JTextField(sanitise(c.title));
+			fileNameBox.add(fileName);
+			fileNameBox.add(Box.createHorizontalGlue());
+			chapterBox.add(fileNameBox);
 			chapterBox.setBorder(new LineBorder(Color.BLACK));
 			fullChaptersBox.add(chapterBox);
 			fullChaptersBox.add(Box.createVerticalStrut(5));
+			chapterComponents.add(new ChapterTextFields(isActive,artist,trackName,fileName));
 		}
 		Box reverseUtilityBox=Box.createHorizontalBox();
 		reverseUtilityBox.add(Box.createHorizontalGlue());
@@ -130,7 +149,7 @@ public class StandardBox extends JFrame	{
 		reverseUtilityBox.add(Box.createHorizontalGlue());
 		fullChaptersBox.add(reverseUtilityBox);
 		reverseButton.addActionListener((ActionEvent a)->	{
-			chapterComponents.forEach(ChapterTextFields::reverse);
+			chapterComponents.forEach(ChapterTextFields::reverseArtistAndTitle);
 		});
 		// Scroll for the buttons pane, with maximum size.
 		JScrollPane chaptersScroll=new JScrollPane(fullChaptersBox);
