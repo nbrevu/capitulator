@@ -21,8 +21,8 @@ public final class IoFunctions {
 		/*
 		 * HERE BE DRAGONS. There are much better ways to do this (with actual type safety). This should be improved.
 		 */
-		Map<String,Object> cosa=new Gson().fromJson(Files.newBufferedReader(file),Map.class);
-		List<Map<String,Object>> chapters=(List<Map<String,Object>>)cosa.get("chapters");
+		Map<String,Object> jsonData=new Gson().fromJson(Files.newBufferedReader(file),Map.class);
+		List<Map<String,Object>> chapters=(List<Map<String,Object>>)jsonData.get("chapters");
 		if (chapters==null) return List.of();
 		List<Chapter> result=new ArrayList<>(chapters.size());
 		for (Map<String,Object> chapter:chapters)	{
