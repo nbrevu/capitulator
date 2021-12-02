@@ -1,8 +1,8 @@
 package com.nbrevu.capitulator;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -12,7 +12,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.apache.commons.exec.ExecuteException;
 
 import com.nbrevu.capitulator.deserialiseddata.AppConfig;
-import com.nbrevu.capitulator.deserialiseddata.Chapter;
+import com.nbrevu.capitulator.deserialiseddata.VideoData;
 import com.nbrevu.capitulator.ui.StandardBox;
 
 public class CapitulatorApp {
@@ -30,10 +30,11 @@ public class CapitulatorApp {
 			}
 			String youtubeUrl=args[0];
 			ExternalExecutor executor=new ExternalExecutor(config);
-			Path file=executor.dumpJsonFile(youtubeUrl);
-			List<Chapter> chapters=IoFunctions.readChapters(file);
+			Path tmpJsonFile=executor.dumpJsonFile(youtubeUrl);
+			VideoData data=IoFunctions.readJsonVideoData(tmpJsonFile);
+			Files.delete(tmpJsonFile);
 			// ZUTUN! TODO! TEHDÄ!!!!! Manage the case where chapters can't be found. Use another JFrame.
-			JFrame mainApp=new StandardBox(chapters,config);
+			JFrame mainApp=new StandardBox(data.title,data.chapters,config);
 			mainApp.setVisible(true);
 		}	catch (ExecuteException exc)	{
 			JOptionPane.showMessageDialog(null,"Error running youtube-dl. Please make sure that the URL is valid.","Can't run youtube-dl",JOptionPane.ERROR_MESSAGE);

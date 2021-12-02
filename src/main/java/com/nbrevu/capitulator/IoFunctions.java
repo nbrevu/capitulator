@@ -12,26 +12,29 @@ import java.util.Properties;
 import com.google.gson.Gson;
 import com.nbrevu.capitulator.deserialiseddata.AppConfig;
 import com.nbrevu.capitulator.deserialiseddata.Chapter;
+import com.nbrevu.capitulator.deserialiseddata.VideoData;
 
 public final class IoFunctions {
 	public final static String CONFIG_FILE="config.properties";
 	
 	@SuppressWarnings("unchecked")
-	public static List<Chapter> readChapters(Path file) throws IOException	{
+	public static VideoData readJsonVideoData(Path file) throws IOException	{
 		/*
 		 * HERE BE DRAGONS. There are much better ways to do this (with actual type safety). This should be improved.
 		 */
 		Map<String,Object> jsonData=new Gson().fromJson(Files.newBufferedReader(file),Map.class);
-		List<Map<String,Object>> chapters=(List<Map<String,Object>>)jsonData.get("chapters");
-		if (chapters==null) return List.of();
-		List<Chapter> result=new ArrayList<>(chapters.size());
-		for (Map<String,Object> chapter:chapters)	{
-			String title=(String)chapter.get("title");
+		String title=(String)jsonData.get("title");
+		if (title==null) title="";
+		List<Map<String,Object>> chapterMap=(List<Map<String,Object>>)jsonData.get("chapters");
+		if (chapterMap==null) return new VideoData(title,List.of());
+		List<Chapter> chapters=new ArrayList<>(chapterMap.size());
+		for (Map<String,Object> chapter:chapterMap)	{
+			String chapterName=(String)chapter.get("title");
 			double startTime=((Double)chapter.get("start_time")).doubleValue();
 			double endTime=((Double)chapter.get("end_time")).doubleValue();
-			result.add(new Chapter(title,startTime,endTime));
+			chapters.add(new Chapter(chapterName,startTime,endTime));
 		}
-		return result;
+		return new VideoData(title,chapters);
 	}
 	
 	public static AppConfig readConfig() throws IOException	{
