@@ -34,7 +34,7 @@ public class CapitulatorApp {
 			VideoData data=IoFunctions.readJsonVideoData(tmpJsonFile);
 			Files.delete(tmpJsonFile);
 			// ZUTUN! TODO! TEHDÄ!!!!! Manage the case where chapters can't be found. Use another JFrame.
-			JFrame mainApp=new StandardBox(data.title,data.chapters,config);
+			JFrame mainApp=new StandardBox(youtubeUrl,data.title,data.chapters,config,executor);
 			mainApp.setVisible(true);
 		}	catch (ExecuteException exc)	{
 			JOptionPane.showMessageDialog(null,"Error running youtube-dl. Please make sure that the URL is valid.","Can't run youtube-dl",JOptionPane.ERROR_MESSAGE);

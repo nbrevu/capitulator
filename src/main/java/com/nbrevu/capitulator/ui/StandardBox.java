@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,13 +17,14 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import com.nbrevu.capitulator.OperationList;
-import com.nbrevu.capitulator.OperationList.ChapterFile;
+import com.nbrevu.capitulator.ChapterFile;
+import com.nbrevu.capitulator.ExternalExecutor;
 import com.nbrevu.capitulator.deserialiseddata.AppConfig;
 import com.nbrevu.capitulator.deserialiseddata.Chapter;
 
@@ -53,7 +56,7 @@ public class StandardBox extends JFrame	{
 		}
 	}
 	
-	public StandardBox(String videoTitle,List<Chapter> chapters,AppConfig config)	{
+	public StandardBox(String youtubeUrl,String videoTitle,List<Chapter> chapters,AppConfig config,ExternalExecutor executor)	{
 		super("Partition youtube videos by chapter");
 		StandardBox me=this;
 		Box mainPane=Box.createVerticalBox();
@@ -185,9 +188,35 @@ public class StandardBox extends JFrame	{
 					processedChapters.add(new ChapterFile(chapterFile,startTime,endTime,artist,trackName));
 				}
 			}
-			OperationList operations=new OperationList(processedChapters,keepVideo.isSelected(),deleteEmptyFiles.isSelected(),album.getText());
-			// ZUTUN! TODO! TEHDÄ!!!!!
-			me.dispose();
+			boolean mustKeepVideo=keepVideo.isSelected();
+			boolean mustDeleteEmptyFiles=deleteEmptyFiles.isSelected();
+			String albumName=album.getText();
+			List<Path> deletedFiles=new ArrayList<>();
+			try	{
+				Path downloadedYoutubeMp4File=executor.downloadVideo(youtubeUrl,me);
+				for (ChapterFile chapter:processedChapters)	{
+					executor.cutFile(downloadedYoutubeMp4File,chapter,mustKeepVideo,albumName,me);
+					if (mustDeleteEmptyFiles&&executor.containsSilences(chapter.file))	{
+						Files.delete(chapter.file);
+						deletedFiles.add(chapter.file);
+					}
+				}
+				if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful!","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
+				else	{
+					StringBuilder sb=new StringBuilder();
+					sb.append("The following files were deleted because they were actually silent:");
+					for (Path file:deletedFiles)	{
+						sb.append(System.lineSeparator());
+						sb.append(file.getFileName());
+					}
+					JOptionPane.showMessageDialog(me,sb.toString(),"Partial success",JOptionPane.WARNING_MESSAGE);
+				}
+			}	catch (IOException exc)	{
+				JOptionPane.showMessageDialog(me,"An I/O error happened:\n"+exc.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+			}	finally	{
+				// ZUTUN! TODO! TEHDÄ!!!!!
+				me.dispose();
+			}
 		});
 		mainPane.add(buttonBox);
 		mainPane.add(Box.createVerticalStrut(5));

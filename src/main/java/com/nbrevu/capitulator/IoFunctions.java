@@ -25,8 +25,9 @@ public final class IoFunctions {
 		Map<String,Object> jsonData=new Gson().fromJson(Files.newBufferedReader(file),Map.class);
 		String title=(String)jsonData.get("title");
 		if (title==null) title="";
+		double duration=((Double)jsonData.get("duration")).doubleValue();
 		List<Map<String,Object>> chapterMap=(List<Map<String,Object>>)jsonData.get("chapters");
-		if (chapterMap==null) return new VideoData(title,List.of());
+		if (chapterMap==null) return new VideoData(title,duration,List.of());
 		List<Chapter> chapters=new ArrayList<>(chapterMap.size());
 		for (Map<String,Object> chapter:chapterMap)	{
 			String chapterName=(String)chapter.get("title");
@@ -34,7 +35,7 @@ public final class IoFunctions {
 			double endTime=((Double)chapter.get("end_time")).doubleValue();
 			chapters.add(new Chapter(chapterName,startTime,endTime));
 		}
-		return new VideoData(title,chapters);
+		return new VideoData(title,duration,chapters);
 	}
 	
 	public static AppConfig readConfig() throws IOException	{
