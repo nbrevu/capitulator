@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.google.gson.Gson;
-import com.nbrevu.capitulator.deserialiseddata.AppConfig;
-import com.nbrevu.capitulator.deserialiseddata.Chapter;
-import com.nbrevu.capitulator.deserialiseddata.VideoData;
+import com.nbrevu.capitulator.data.AppConfig;
+import com.nbrevu.capitulator.data.RawChapterDefinition;
+import com.nbrevu.capitulator.data.VideoData;
 
 public final class IoFunctions {
 	public final static String CONFIG_FILE="config.properties";
@@ -28,12 +28,12 @@ public final class IoFunctions {
 		double duration=((Double)jsonData.get("duration")).doubleValue();
 		List<Map<String,Object>> chapterMap=(List<Map<String,Object>>)jsonData.get("chapters");
 		if (chapterMap==null) return new VideoData(title,duration,List.of());
-		List<Chapter> chapters=new ArrayList<>(chapterMap.size());
+		List<RawChapterDefinition> chapters=new ArrayList<>(chapterMap.size());
 		for (Map<String,Object> chapter:chapterMap)	{
 			String chapterName=(String)chapter.get("title");
 			double startTime=((Double)chapter.get("start_time")).doubleValue();
 			double endTime=((Double)chapter.get("end_time")).doubleValue();
-			chapters.add(new Chapter(chapterName,startTime,endTime));
+			chapters.add(new RawChapterDefinition(chapterName,startTime,endTime));
 		}
 		return new VideoData(title,duration,chapters);
 	}

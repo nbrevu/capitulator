@@ -11,8 +11,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.commons.exec.ExecuteException;
 
-import com.nbrevu.capitulator.deserialiseddata.AppConfig;
-import com.nbrevu.capitulator.deserialiseddata.VideoData;
+import com.nbrevu.capitulator.data.AppConfig;
+import com.nbrevu.capitulator.data.VideoData;
 import com.nbrevu.capitulator.ui.StandardBox;
 
 public class CapitulatorApp {

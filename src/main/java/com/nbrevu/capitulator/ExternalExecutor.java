@@ -12,7 +12,8 @@ import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteStreamHandler;
 import org.apache.commons.exec.PumpStreamHandler;
 
-import com.nbrevu.capitulator.deserialiseddata.AppConfig;
+import com.nbrevu.capitulator.data.AppConfig;
+import com.nbrevu.capitulator.data.UserDefinedChapter;
 import com.nbrevu.capitulator.ui.ProgressDialog;
 
 public class ExternalExecutor	{
@@ -40,7 +41,7 @@ public class ExternalExecutor	{
 		return cmd;
 	}
 	
-	private CommandLine getFfmpegCutCommand(Path inputFile,ChapterFile chapterData,boolean keepVideo,String albumTag)	{
+	private CommandLine getFfmpegCutCommand(Path inputFile,UserDefinedChapter chapterData,boolean keepVideo,String albumTag)	{
 		CommandLine cmd=new CommandLine(appConfig.ffmpegExe.toFile());
 		cmd.addArgument("-i");
 		cmd.addArgument(inputFile.toAbsolutePath().toString());
@@ -50,12 +51,15 @@ public class ExternalExecutor	{
 		cmd.addArgument(Double.toString(chapterData.endTime));
 		if (keepVideo) cmd.addArguments(FFMPEG_KEEP_VIDEO_ARGS);
 		else cmd.addArguments(FFMPEG_NO_VIDEO_ARGS);
+		// Info about the metadata tags: https://wiki.multimedia.cx/index.php/FFmpeg_Metadata#MP3 .
 		cmd.addArgument(MD);
 		cmd.addArgument("TIT2="+chapterData.track);
 		cmd.addArgument(MD);
 		cmd.addArgument("TPE1="+chapterData.artist);
 		cmd.addArgument(MD);
 		cmd.addArgument("TALB="+albumTag);
+		cmd.addArgument(MD);
+		cmd.addArgument("TRCK="+chapterData.trackNumber);
 		cmd.addArgument("-y");
 		cmd.addArgument(chapterData.file.toAbsolutePath().toString());
 		return cmd;
@@ -84,9 +88,7 @@ public class ExternalExecutor	{
 		},System.err);
 		DefaultExecutor executor=new DefaultExecutor();
 		executor.setStreamHandler(streamHandler);
-		System.out.println("Allá que voy.");
 		int result=executor.execute(command);
-		System.out.println("BAM.");
 		dialog.setVisible(false);
 		dialog.dispose();
 		return result;
@@ -125,12 +127,13 @@ public class ExternalExecutor	{
 	
 	public Path downloadVideo(String youtubeUrl,JFrame parent) throws IOException	{
 		Path tmpFile=createTmpFile(".mp4");
+		Files.delete(tmpFile);	// Unintuitive, but necessary.
 		CommandLine command=getYoutubeDlMainInvocation(tmpFile,youtubeUrl);
 		runCommandShowingDialog(command,parent,"download finishes");
 		return tmpFile;
 	}
 	
-	public void cutFile(Path inputFile,ChapterFile chapterData,boolean keepVideo,String albumTag,JFrame parent) throws IOException	{
+	public void cutFile(Path inputFile,UserDefinedChapter chapterData,boolean keepVideo,String albumTag,JFrame parent) throws IOException	{
 		CommandLine command=getFfmpegCutCommand(inputFile,chapterData,keepVideo,albumTag);
 		runCommandShowingDialog(command,parent,"media files are being cut");
 	}

@@ -23,10 +23,10 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
-import com.nbrevu.capitulator.ChapterFile;
 import com.nbrevu.capitulator.ExternalExecutor;
-import com.nbrevu.capitulator.deserialiseddata.AppConfig;
-import com.nbrevu.capitulator.deserialiseddata.Chapter;
+import com.nbrevu.capitulator.data.AppConfig;
+import com.nbrevu.capitulator.data.RawChapterDefinition;
+import com.nbrevu.capitulator.data.UserDefinedChapter;
 
 public class StandardBox extends JFrame	{
 	private final static long serialVersionUID = -7891317911426722027L;
@@ -56,7 +56,7 @@ public class StandardBox extends JFrame	{
 		}
 	}
 	
-	public StandardBox(String youtubeUrl,String videoTitle,List<Chapter> chapters,AppConfig config,ExternalExecutor executor)	{
+	public StandardBox(String youtubeUrl,String videoTitle,List<RawChapterDefinition> chapters,AppConfig config,ExternalExecutor executor)	{
 		super("Partition youtube videos by chapter");
 		StandardBox me=this;
 		Box mainPane=Box.createVerticalBox();
@@ -107,7 +107,7 @@ public class StandardBox extends JFrame	{
 		Box fullChaptersBox=Box.createVerticalBox();
 		fullChaptersBox.add(Box.createVerticalStrut(5));
 		List<ChapterTextFields> chapterComponents=new ArrayList<>();
-		for (Chapter c:chapters)	{
+		for (RawChapterDefinition c:chapters)	{
 			Box chapterBox=Box.createVerticalBox();
 			Box labelBox=Box.createHorizontalBox();
 			labelBox.add(Box.createHorizontalStrut(5));
@@ -175,9 +175,10 @@ public class StandardBox extends JFrame	{
 		buttonBox.add(Box.createHorizontalGlue());
 		mainButton.addActionListener((ActionEvent a)->{
 			Path basePath=Paths.get(defaultDir.getText());
-			List<ChapterFile> processedChapters=new ArrayList<>();
+			basePath.toFile().mkdirs();
+			List<UserDefinedChapter> processedChapters=new ArrayList<>();
 			for (int i=0;i<chapters.size();++i)	{
-				Chapter data=chapters.get(i);
+				RawChapterDefinition data=chapters.get(i);
 				ChapterTextFields fields=chapterComponents.get(i);
 				if (fields.isActive.isSelected())	{
 					Path chapterFile=basePath.resolve(fields.fileName.getText());
@@ -185,7 +186,7 @@ public class StandardBox extends JFrame	{
 					double endTime=data.endMark;
 					String artist=fields.trackArtist.getText();
 					String trackName=fields.trackTitle.getText();
-					processedChapters.add(new ChapterFile(chapterFile,startTime,endTime,artist,trackName));
+					processedChapters.add(new UserDefinedChapter(i+1,chapterFile,startTime,endTime,artist,trackName));
 				}
 			}
 			boolean mustKeepVideo=keepVideo.isSelected();
@@ -194,13 +195,14 @@ public class StandardBox extends JFrame	{
 			List<Path> deletedFiles=new ArrayList<>();
 			try	{
 				Path downloadedYoutubeMp4File=executor.downloadVideo(youtubeUrl,me);
-				for (ChapterFile chapter:processedChapters)	{
+				for (UserDefinedChapter chapter:processedChapters)	{
 					executor.cutFile(downloadedYoutubeMp4File,chapter,mustKeepVideo,albumName,me);
 					if (mustDeleteEmptyFiles&&executor.containsSilences(chapter.file))	{
 						Files.delete(chapter.file);
 						deletedFiles.add(chapter.file);
 					}
 				}
+				Files.delete(downloadedYoutubeMp4File);
 				if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful!","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
 				else	{
 					StringBuilder sb=new StringBuilder();
@@ -214,7 +216,6 @@ public class StandardBox extends JFrame	{
 			}	catch (IOException exc)	{
 				JOptionPane.showMessageDialog(me,"An I/O error happened:\n"+exc.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
 			}	finally	{
-				// ZUTUN! TODO! TEHDÄ!!!!!
 				me.dispose();
 			}
 		});

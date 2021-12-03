@@ -1,4 +1,4 @@
-package com.nbrevu.capitulator.deserialiseddata;
+package com.nbrevu.capitulator.data;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
