@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+import com.nbrevu.capitulator.OperationList;
+import com.nbrevu.capitulator.OperationList.ChapterFile;
 import com.nbrevu.capitulator.deserialiseddata.AppConfig;
 import com.nbrevu.capitulator.deserialiseddata.Chapter;
 
@@ -133,7 +137,7 @@ public class StandardBox extends JFrame	{
 			Box fileNameBox=Box.createHorizontalBox();
 			fileNameBox.add(Box.createHorizontalStrut(5));
 			fileNameBox.add(new JLabel("File name: "));
-			JTextField fileName=new JTextField(sanitise(c.title));
+			JTextField fileName=new JTextField(sanitise(c.title)+".mp3");
 			fileNameBox.add(fileName);
 			fileNameBox.add(Box.createHorizontalGlue());
 			chapterBox.add(fileNameBox);
@@ -167,7 +171,22 @@ public class StandardBox extends JFrame	{
 		buttonBox.add(mainButton);
 		buttonBox.add(Box.createHorizontalGlue());
 		mainButton.addActionListener((ActionEvent a)->{
-			// ZUTUN! TODO! TEHDÄ!!!!! The code and all that.
+			Path basePath=Paths.get(defaultDir.getText());
+			List<ChapterFile> processedChapters=new ArrayList<>();
+			for (int i=0;i<chapters.size();++i)	{
+				Chapter data=chapters.get(i);
+				ChapterTextFields fields=chapterComponents.get(i);
+				if (fields.isActive.isSelected())	{
+					Path chapterFile=basePath.resolve(fields.fileName.getText());
+					double startTime=data.startMark;
+					double endTime=data.endMark;
+					String artist=fields.trackArtist.getText();
+					String trackName=fields.trackTitle.getText();
+					processedChapters.add(new ChapterFile(chapterFile,startTime,endTime,artist,trackName));
+				}
+			}
+			OperationList operations=new OperationList(processedChapters,keepVideo.isSelected(),deleteEmptyFiles.isSelected(),album.getText());
+			// ZUTUN! TODO! TEHDÄ!!!!!
 			me.dispose();
 		});
 		mainPane.add(buttonBox);
