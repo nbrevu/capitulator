@@ -73,7 +73,7 @@ public class ExternalExecutor	{
 		return cmd;
 	}
 	
-	private static int runCommandShowingDialog(CommandLine command,JFrame parent,String additionalText) throws IOException	{
+	private static void runCommandShowingDialog(CommandLine command,JFrame parent,String additionalText) throws IOException	{
 		ProgressDialog dialog=new ProgressDialog(parent,additionalText);
 		dialog.doShow();
 		ExecuteStreamHandler streamHandler=new PumpStreamHandler(new OutputStream()	{
@@ -88,24 +88,23 @@ public class ExternalExecutor	{
 		},System.err);
 		DefaultExecutor executor=new DefaultExecutor();
 		executor.setStreamHandler(streamHandler);
-		int result=executor.execute(command);
+		executor.execute(command);
 		dialog.setVisible(false);
 		dialog.dispose();
-		return result;
 	}
 	
-	private static int runCommandCapturingOutput(CommandLine command,OutputStream filePrinter) throws IOException	{
+	private static void runCommandCapturingOutput(CommandLine command,OutputStream filePrinter) throws IOException	{
 		DefaultExecutor executor=new DefaultExecutor();
 		ExecuteStreamHandler streamHandler=new PumpStreamHandler(filePrinter,System.err);
 		executor.setStreamHandler(streamHandler);
-		return executor.execute(command);
+		executor.execute(command);
 	}
 	
-	private static int runCommandCapturingErrorStream(CommandLine command,OutputStream filePrinter) throws IOException	{
+	private static void runCommandCapturingErrorStream(CommandLine command,OutputStream filePrinter) throws IOException	{
 		DefaultExecutor executor=new DefaultExecutor();
 		ExecuteStreamHandler streamHandler=new PumpStreamHandler(System.out,filePrinter);
 		executor.setStreamHandler(streamHandler);
-		return executor.execute(command);
+		executor.execute(command);
 	}
 	
 	public ExternalExecutor(AppConfig appConfig)	{

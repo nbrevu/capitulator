@@ -20,6 +20,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
@@ -192,32 +193,34 @@ public class StandardBox extends JFrame	{
 			boolean mustKeepVideo=keepVideo.isSelected();
 			boolean mustDeleteEmptyFiles=deleteEmptyFiles.isSelected();
 			String albumName=album.getText();
-			List<Path> deletedFiles=new ArrayList<>();
-			try	{
-				Path downloadedYoutubeMp4File=executor.downloadVideo(youtubeUrl,me);
-				for (UserDefinedChapter chapter:processedChapters)	{
-					executor.cutFile(downloadedYoutubeMp4File,chapter,mustKeepVideo,albumName,me);
-					if (mustDeleteEmptyFiles&&executor.containsSilences(chapter.file))	{
-						Files.delete(chapter.file);
-						deletedFiles.add(chapter.file);
+			SwingUtilities.invokeLater(()->	{
+				List<Path> deletedFiles=new ArrayList<>();
+				try	{
+					Path downloadedYoutubeMp4File=executor.downloadVideo(youtubeUrl,me);
+					for (UserDefinedChapter chapter:processedChapters)	{
+						executor.cutFile(downloadedYoutubeMp4File,chapter,mustKeepVideo,albumName,me);
+						if (mustDeleteEmptyFiles&&executor.containsSilences(chapter.file))	{
+							Files.delete(chapter.file);
+							deletedFiles.add(chapter.file);
+						}
 					}
-				}
-				Files.delete(downloadedYoutubeMp4File);
-				if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful!","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
-				else	{
-					StringBuilder sb=new StringBuilder();
-					sb.append("The following files were deleted because they were actually silent:");
-					for (Path file:deletedFiles)	{
-						sb.append(System.lineSeparator());
-						sb.append(file.getFileName());
+					Files.delete(downloadedYoutubeMp4File);
+					if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful!","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
+					else	{
+						StringBuilder sb=new StringBuilder();
+						sb.append("The following files were deleted because they were actually silent:");
+						for (Path file:deletedFiles)	{
+							sb.append(System.lineSeparator());
+							sb.append(file.getFileName());
+						}
+						JOptionPane.showMessageDialog(me,sb.toString(),"Partial success",JOptionPane.WARNING_MESSAGE);
 					}
-					JOptionPane.showMessageDialog(me,sb.toString(),"Partial success",JOptionPane.WARNING_MESSAGE);
+				}	catch (IOException exc)	{
+					JOptionPane.showMessageDialog(me,"An I/O error happened:\n"+exc.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
+				}	finally	{
+					me.dispose();
 				}
-			}	catch (IOException exc)	{
-				JOptionPane.showMessageDialog(me,"An I/O error happened:\n"+exc.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
-			}	finally	{
-				me.dispose();
-			}
+			});
 		});
 		mainPane.add(buttonBox);
 		mainPane.add(Box.createVerticalStrut(5));
