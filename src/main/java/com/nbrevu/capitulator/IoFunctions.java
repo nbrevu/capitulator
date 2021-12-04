@@ -1,9 +1,13 @@
 package com.nbrevu.capitulator;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,5 +49,14 @@ public final class IoFunctions {
 			properties.load(is);
 		}
 		return new AppConfig(properties);
+	}
+	
+	public static void writeConfig(Properties properties) throws IOException,URISyntaxException	{
+		ClassLoader loader=IoFunctions.class.getClassLoader();
+		URL resource=loader.getResource(CONFIG_FILE);
+		Path resourcePath=Paths.get(resource.toURI());
+		try (BufferedWriter writer=Files.newBufferedWriter(resourcePath))	{
+			properties.store(writer,null);
+		}
 	}
 }

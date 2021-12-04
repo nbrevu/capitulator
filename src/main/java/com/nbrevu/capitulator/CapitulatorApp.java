@@ -38,6 +38,7 @@ public class CapitulatorApp {
 			Path tmpJsonFile=executor.dumpJsonFile(youtubeUrl);
 			VideoData data=IoFunctions.readJsonVideoData(tmpJsonFile);
 			Files.delete(tmpJsonFile);
+			config.tmpFolder.toFile().mkdirs();
 			if (data.chapters.isEmpty())	{
 				JFrame auxiliaryApp=new AuxiliaryBox(youtubeUrl,data.title,data.duration,config,executor,icon);
 				auxiliaryApp.setVisible(true);
