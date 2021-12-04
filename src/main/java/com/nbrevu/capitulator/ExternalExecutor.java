@@ -73,10 +73,10 @@ public class ExternalExecutor	{
 		return cmd;
 	}
 	
-	private static void runCommandShowingDialog(CommandLine command,JFrame parent,String additionalText) throws IOException	{
+	private static void runCommandShowingDialog(CommandLine command,JFrame parent,String additionalText,boolean useErrorStream) throws IOException	{
 		ProgressDialog dialog=new ProgressDialog(parent,additionalText);
 		dialog.doShow();
-		ExecuteStreamHandler streamHandler=new PumpStreamHandler(new OutputStream()	{
+		OutputStream stream=new OutputStream()	{
 			private StringBuilder currentString=new StringBuilder();
 			@Override
 			public void write(int b)	{
@@ -85,24 +85,15 @@ public class ExternalExecutor	{
 					currentString=new StringBuilder();
 				}	else if (b!='\r') currentString.append((char)b);
 			}
-		},System.err);
-		DefaultExecutor executor=new DefaultExecutor();
-		executor.setStreamHandler(streamHandler);
-		executor.execute(command);
+		};
+		runCommandCapturingOutput(command,stream,useErrorStream);
 		dialog.setVisible(false);
 		dialog.dispose();
 	}
 	
-	private static void runCommandCapturingOutput(CommandLine command,OutputStream filePrinter) throws IOException	{
+	private static void runCommandCapturingOutput(CommandLine command,OutputStream filePrinter,boolean useErrorStream) throws IOException	{
 		DefaultExecutor executor=new DefaultExecutor();
-		ExecuteStreamHandler streamHandler=new PumpStreamHandler(filePrinter,System.err);
-		executor.setStreamHandler(streamHandler);
-		executor.execute(command);
-	}
-	
-	private static void runCommandCapturingErrorStream(CommandLine command,OutputStream filePrinter) throws IOException	{
-		DefaultExecutor executor=new DefaultExecutor();
-		ExecuteStreamHandler streamHandler=new PumpStreamHandler(System.out,filePrinter);
+		ExecuteStreamHandler streamHandler=useErrorStream?new PumpStreamHandler(System.out,filePrinter):new PumpStreamHandler(filePrinter,System.err);
 		executor.setStreamHandler(streamHandler);
 		executor.execute(command);
 	}
@@ -119,7 +110,7 @@ public class ExternalExecutor	{
 	public Path dumpJsonFile(String youtubeUrl) throws IOException	{
 		Path tmpFile=createTmpFile(".json");
 		try (OutputStream filePrinter=Files.newOutputStream(tmpFile))	{
-			runCommandCapturingOutput(getDumpJsonCommand(youtubeUrl),filePrinter);
+			runCommandCapturingOutput(getDumpJsonCommand(youtubeUrl),filePrinter,false);
 		}
 		return tmpFile;
 	}
@@ -128,19 +119,19 @@ public class ExternalExecutor	{
 		Path tmpFile=createTmpFile(".mp4");
 		Files.delete(tmpFile);	// Unintuitive, but necessary.
 		CommandLine command=getYoutubeDlMainInvocation(tmpFile,youtubeUrl);
-		runCommandShowingDialog(command,parent,"download finishes");
+		runCommandShowingDialog(command,parent,"download finishes",false);
 		return tmpFile;
 	}
 	
 	public void cutFile(Path inputFile,UserDefinedChapter chapterData,boolean keepVideo,String albumTag,JFrame parent) throws IOException	{
 		CommandLine command=getFfmpegCutCommand(inputFile,chapterData,keepVideo,albumTag);
-		runCommandShowingDialog(command,parent,"media files are being cut");
+		runCommandShowingDialog(command,parent,"file "+chapterData.file.getFileName().toString()+" is being cut",true);
 	}
 	
 	public boolean containsSilences(Path mediaFile) throws IOException	{
 		Path tmpFile=createTmpFile(".txt");
 		try (OutputStream filePrinter=Files.newOutputStream(tmpFile))	{
-			runCommandCapturingErrorStream(getFfmpegSilenceDetectionCommand(mediaFile),filePrinter);
+			runCommandCapturingOutput(getFfmpegSilenceDetectionCommand(mediaFile),filePrinter,true);
 		}
 		boolean isSilence=false;
 		for (String line:Files.readAllLines(tmpFile)) if (line.contains("silence_duration"))	{

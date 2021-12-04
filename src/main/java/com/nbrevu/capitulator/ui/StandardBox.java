@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -56,9 +57,10 @@ public class StandardBox extends JFrame	{
 		}
 	}
 	
-	public StandardBox(String youtubeUrl,String videoTitle,List<RawChapterDefinition> chapters,AppConfig config,ExternalExecutor executor)	{
+	public StandardBox(String youtubeUrl,String videoTitle,List<RawChapterDefinition> chapters,AppConfig config,ExternalExecutor executor,ImageIcon icon)	{
 		super("Partition youtube videos by chapter");
 		StandardBox me=this;
+		setIconImage(icon.getImage());
 		Box mainPane=Box.createVerticalBox();
 		mainPane.add(Box.createVerticalStrut(5));
 		// Controls to choose a directory to save the result files.
@@ -142,11 +144,18 @@ public class StandardBox extends JFrame	{
 			fileNameBox.add(new JLabel("File name: "));
 			JTextField fileName=new JTextField(sanitise(c.title)+".mp3");
 			fileNameBox.add(fileName);
+			fileNameBox.add(Box.createHorizontalStrut(5));
 			fileNameBox.add(Box.createHorizontalGlue());
 			chapterBox.add(fileNameBox);
 			chapterBox.setBorder(new LineBorder(Color.BLACK));
 			fullChaptersBox.add(chapterBox);
 			fullChaptersBox.add(Box.createVerticalStrut(5));
+			isActive.addActionListener((ActionEvent e)->	{
+				boolean active=isActive.isSelected();
+				artist.setEnabled(active);
+				trackName.setEnabled(active);
+				fileName.setEnabled(active);
+			});
 			chapterComponents.add(new ChapterTextFields(isActive,artist,trackName,fileName));
 		}
 		Box reverseUtilityBox=Box.createHorizontalBox();
@@ -155,6 +164,7 @@ public class StandardBox extends JFrame	{
 		reverseUtilityBox.add(reverseButton);
 		reverseUtilityBox.add(Box.createHorizontalGlue());
 		fullChaptersBox.add(reverseUtilityBox);
+		fullChaptersBox.add(Box.createVerticalGlue());
 		reverseButton.addActionListener((ActionEvent a)->	{
 			chapterComponents.forEach(ChapterTextFields::reverseArtistAndTitle);
 		});
@@ -189,6 +199,10 @@ public class StandardBox extends JFrame	{
 					processedChapters.add(new UserDefinedChapter(i+1,chapterFile,startTime,endTime,artist,trackName));
 				}
 			}
+			if (processedChapters.isEmpty())	{
+				JOptionPane.showMessageDialog(me,"Please choose at least one chapter to cut.","You chose... poorly",JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 			boolean mustKeepVideo=keepVideo.isSelected();
 			boolean mustDeleteEmptyFiles=deleteEmptyFiles.isSelected();
 			String albumName=album.getText();
@@ -204,7 +218,7 @@ public class StandardBox extends JFrame	{
 						}
 					}
 					Files.delete(downloadedYoutubeMp4File);
-					if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful!","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
+					if (deletedFiles.isEmpty()) JOptionPane.showMessageDialog(me,"Operation successful! All the files were successfully written.","ENDUT! HOCH HECH!",JOptionPane.INFORMATION_MESSAGE);
 					else	{
 						StringBuilder sb=new StringBuilder();
 						sb.append("The following files were deleted because they were actually silent:");
