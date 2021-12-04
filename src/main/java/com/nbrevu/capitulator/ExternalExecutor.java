@@ -80,7 +80,7 @@ public class ExternalExecutor	{
 			private StringBuilder currentString=new StringBuilder();
 			@Override
 			public void write(int b)	{
-				if (b=='\n')	{
+				if (b==13)	{
 					dialog.updateText(currentString.toString());
 					currentString=new StringBuilder();
 				}	else if (b!='\r') currentString.append((char)b);

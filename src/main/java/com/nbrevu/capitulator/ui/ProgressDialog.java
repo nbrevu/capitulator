@@ -34,7 +34,6 @@ public class ProgressDialog extends JDialog {
 		mainBox.add(mutableBox);
 		mainBox.add(Box.createVerticalStrut(5));
 		add(mainBox);
-		//setUndecorated(true);
 		pack();
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
@@ -50,7 +49,6 @@ public class ProgressDialog extends JDialog {
 	}
 	
 	public void updateText(String text)	{
-		System.out.println(text);
-		updatableText.setText(text);
+		SwingUtilities.invokeLater(()->updatableText.setText(text));
 	}
 }

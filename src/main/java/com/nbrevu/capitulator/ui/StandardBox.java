@@ -20,7 +20,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
@@ -193,7 +192,7 @@ public class StandardBox extends JFrame	{
 			boolean mustKeepVideo=keepVideo.isSelected();
 			boolean mustDeleteEmptyFiles=deleteEmptyFiles.isSelected();
 			String albumName=album.getText();
-			SwingUtilities.invokeLater(()->	{
+			new Thread(()->	{
 				List<Path> deletedFiles=new ArrayList<>();
 				try	{
 					Path downloadedYoutubeMp4File=executor.downloadVideo(youtubeUrl,me);
@@ -220,7 +219,7 @@ public class StandardBox extends JFrame	{
 				}	finally	{
 					me.dispose();
 				}
-			});
+			}).start();
 		});
 		mainPane.add(buttonBox);
 		mainPane.add(Box.createVerticalStrut(5));
