@@ -39,6 +39,14 @@ public class StandardBox extends JFrame	{
 		return in;
 	}
 	
+	private static void replaceSuffix(JTextField component,String expectedSuffix,String newSuffix)	{
+		String text=component.getText();
+		if (text.endsWith(expectedSuffix))	{
+			text=text.substring(0,text.length()-expectedSuffix.length())+newSuffix;
+			component.setText(text);
+		}
+	}
+	
 	private static class ChapterTextFields	{
 		public final JCheckBox isActive;
 		public final JTextField trackArtist;
@@ -183,6 +191,10 @@ public class StandardBox extends JFrame	{
 		JButton mainButton=new JButton("Go!");
 		buttonBox.add(mainButton);
 		buttonBox.add(Box.createHorizontalGlue());
+		keepVideo.addActionListener((ActionEvent a)->	{
+			if (keepVideo.isSelected()) for (ChapterTextFields fields:chapterComponents) replaceSuffix(fields.fileName,".mp3",".mp4");
+			else for (ChapterTextFields fields:chapterComponents) replaceSuffix(fields.fileName,".mp4",".mp3");
+		});
 		mainButton.addActionListener((ActionEvent a)->{
 			Path basePath=Paths.get(defaultDir.getText());
 			basePath.toFile().mkdirs();

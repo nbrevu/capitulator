@@ -41,6 +41,10 @@ public class ExternalExecutor	{
 		return cmd;
 	}
 	
+	private static String removeQuotes(String in)	{
+		return in.replace("\"","_");
+	}
+	
 	private CommandLine getFfmpegCutCommand(Path inputFile,UserDefinedChapter chapterData,boolean keepVideo,String albumTag)	{
 		CommandLine cmd=new CommandLine(appConfig.ffmpegExe.toFile());
 		cmd.addArgument("-i");
@@ -53,11 +57,11 @@ public class ExternalExecutor	{
 		else cmd.addArguments(FFMPEG_NO_VIDEO_ARGS);
 		// Info about the metadata tags: https://wiki.multimedia.cx/index.php/FFmpeg_Metadata#MP3 .
 		cmd.addArgument(MD);
-		cmd.addArgument("TIT2="+chapterData.track);
+		cmd.addArgument("TIT2="+removeQuotes(chapterData.track));
 		cmd.addArgument(MD);
-		cmd.addArgument("TPE1="+chapterData.artist);
+		cmd.addArgument("TPE1="+removeQuotes(chapterData.artist));
 		cmd.addArgument(MD);
-		cmd.addArgument("TALB="+albumTag);
+		cmd.addArgument("TALB="+removeQuotes(albumTag));
 		cmd.addArgument(MD);
 		cmd.addArgument("TRCK="+chapterData.trackNumber);
 		cmd.addArgument("-y");
