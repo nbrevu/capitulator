@@ -3,7 +3,6 @@ package com.nbrevu.capitulator.ui;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -166,9 +165,12 @@ public class SetupBox extends JFrame {
 				properties.setProperty(AppConfig.DEFAULT_SAVE_FOLDER,saveDirPath.toAbsolutePath().toString());
 				properties.setProperty(AppConfig.PREFERRED_UI_CLASS,uiClass);
 				IoFunctions.writeConfig(properties);
+				setVisible(false);
+				JOptionPane.showMessageDialog(me,"Configuration file written successfully.","Success!",JOptionPane.INFORMATION_MESSAGE);
+				dispose();
 			}	catch (RuntimeException exc)	{
 				JOptionPane.showMessageDialog(me,"Please check that the paths are valid: "+exc,"Path error",JOptionPane.ERROR_MESSAGE);
-			}	catch (IOException|URISyntaxException exc)	{
+			}	catch (IOException exc)	{
 				JOptionPane.showMessageDialog(me,"Error writing the configuration file: "+exc,"I/O error",JOptionPane.ERROR_MESSAGE);
 			}
 		});

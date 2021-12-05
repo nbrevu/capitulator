@@ -1,10 +1,9 @@
 package com.nbrevu.capitulator;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +18,8 @@ import com.nbrevu.capitulator.data.RawChapterDefinition;
 import com.nbrevu.capitulator.data.VideoData;
 
 public final class IoFunctions {
-	public final static String CONFIG_FILE="config.properties";
+	public final static Path CONFIG_FILE=Paths.get("config.properties");
+	private final static Charset CHAR_SET=Charset.forName(System.getProperty("file.encoding"));
 	
 	@SuppressWarnings("unchecked")
 	public static VideoData readJsonVideoData(Path file) throws IOException	{
@@ -44,18 +44,14 @@ public final class IoFunctions {
 	
 	public static AppConfig readConfig() throws IOException	{
 		Properties properties=new Properties();
-		ClassLoader loader=IoFunctions.class.getClassLoader();
-		try (InputStream is=loader.getResourceAsStream(CONFIG_FILE))	{
-			properties.load(is);
+		try (BufferedReader reader=Files.newBufferedReader(CONFIG_FILE,CHAR_SET))	{
+			properties.load(reader);
 		}
 		return new AppConfig(properties);
 	}
 	
-	public static void writeConfig(Properties properties) throws IOException,URISyntaxException	{
-		ClassLoader loader=IoFunctions.class.getClassLoader();
-		URL resource=loader.getResource(CONFIG_FILE);
-		Path resourcePath=Paths.get(resource.toURI());
-		try (BufferedWriter writer=Files.newBufferedWriter(resourcePath))	{
+	public static void writeConfig(Properties properties) throws IOException	{
+		try (BufferedWriter writer=Files.newBufferedWriter(CONFIG_FILE,CHAR_SET))	{
 			properties.store(writer,null);
 		}
 	}
